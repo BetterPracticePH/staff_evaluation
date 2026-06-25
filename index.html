@@ -139,6 +139,7 @@ const FORMS = {
 let role="Probationary", evaluators=6;
 const MIN_EV=1,MAX_EV=10;
 let scores={};
+let managerSaved={normal:"Aiko Yasuda", senior:"CRO"};
 
 const round1=n=>Math.round(n*10)/10;
 function ensureStore(){ if(!scores[role])scores[role]={}; FORMS[role].rows.forEach((_,i)=>{ if(!scores[role][i])scores[role][i]={}; }); }
@@ -258,7 +259,17 @@ function currentData(){
 function render(){
   buildRoles(); buildHead(); buildBody();
   document.getElementById('position').value=FORMS[role].position;
-  document.getElementById('managerField').querySelector('label').textContent=FORMS[role].senior?"Evaluator":"Manager / Evaluator";
+  const mField=document.getElementById('managerField');
+  const mInput=document.getElementById('manager');
+  // remember the value the user had for the previous field type
+  mField.querySelector('label').textContent=FORMS[role].senior?"Department":"Manager / Evaluator";
+  if(FORMS[role].senior){
+    if(managerSaved.senior===undefined) managerSaved.senior="Client Relation Department";
+    mInput.value=managerSaved.senior;
+  }else{
+    if(managerSaved.normal===undefined) managerSaved.normal="Aiko Yasuda";
+    mInput.value=managerSaved.normal;
+  }
   document.getElementById('evVal').textContent=evaluators;
   compute();
 }
@@ -754,6 +765,12 @@ empNameEl.addEventListener('keydown',e=>{
     if(v) e.target.value=toProperCase(v);
     focusCell(0,0); // jump to the first score box
   }
+});
+
+// remember edits to the Manager/Department field per role type
+document.getElementById('manager').addEventListener('input',e=>{
+  if(FORMS[role].senior) managerSaved.senior=e.target.value;
+  else managerSaved.normal=e.target.value;
 });
 
 const d=new Date();

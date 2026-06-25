@@ -139,7 +139,7 @@ const FORMS = {
 let role="Probationary", evaluators=6;
 const MIN_EV=1,MAX_EV=10;
 let scores={};
-let managerSaved={normal:"Aiko Yasuda", senior:"Client Relation Department"};
+let managerSaved={normal:"Aiko Yasuda", senior:"CRO"};
 
 const round1=n=>Math.round(n*10)/10;
 function ensureStore(){ if(!scores[role])scores[role]={}; FORMS[role].rows.forEach((_,i)=>{ if(!scores[role][i])scores[role][i]={}; }); }
@@ -264,7 +264,7 @@ function render(){
   // remember the value the user had for the previous field type
   mField.querySelector('label').textContent=FORMS[role].senior?"Department":"Manager / Evaluator";
   if(FORMS[role].senior){
-    if(managerSaved.senior===undefined) managerSaved.senior="Client Relation Department";
+    if(managerSaved.senior===undefined) managerSaved.senior="CRO";
     mInput.value=managerSaved.senior;
   }else{
     if(managerSaved.normal===undefined) managerSaved.normal="Aiko Yasuda";
@@ -352,7 +352,7 @@ function formHTML(){
   const bands=["4.5 – 5.0 = Outstanding","3.5 – 4.4 = Very Good","2.5 – 3.4 = Satisfactory","1.5 – 2.4 = Needs Improvement","1.0 – 1.4 = Poor"]
     .map(t=>{const on=cur&&t.indexOf(cur)>-1;return `<div${on?' class="hl"':(bold?' class="b"':'')}>${bold&&!on?'<b>'+t+'</b>':t}</div>`}).join("");
   const sign=!f.senior?`<p style="margin-top:14px"><b>Evaluator's Signature: _______________________</b></p>`:"";
-  const dateEnd=!f.senior?`<p style="margin-top:2px"><b>Date: _______________</b></p>`:"";
+  const dateEnd=!f.senior?`<p style="margin-top:2px"><b>Date: ${esc(dateStr||"_______________")}</b></p>`:"";
   const confStyle=f.senior?'font-style:italic;font-weight:normal':'font-weight:bold;font-style:italic';
   const scaleLine=bold?`<b>5 – Excellent | 4 – Very Good | 3 – Satisfactory | 2 – Needs Improvement | 1 – Poor</b>`:`5 – Excellent | 4 – Very Good | 3 – Satisfactory | 2 – Needs Improvement | 1 – Poor`;
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${esc(f.title)}</title>
@@ -534,7 +534,7 @@ function buildDocx(){
   body+=para([run(comment||"\u00a0")],{after:120});
   if(!f.senior){
     body+=para([run("Evaluator's Signature: "+"_______________________",{bold:true})]);
-    body+=para([run("Date: "+"_______________",{bold:true})]);
+    body+=para([run("Date: "+(dateStr||"_______________"),{bold:true})]);
   }
 
   const documentXml='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>'+
@@ -704,7 +704,7 @@ function buildPDF(){
   if(!f.senior){
     y-=6;
     KVB(M,y,"Evaluator's Signature:","_______________________"); y-=13;
-    KVB(M,y,"Date:","_______________"); y-=13;
+    KVB(M,y,"Date:",dateStr||"_______________"); y-=13;
   }
 
   // assemble PDF bytes

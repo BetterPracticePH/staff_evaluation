@@ -97,6 +97,7 @@
       <div class="val" id="evVal">6</div>
       <button id="evPlus" aria-label="Add evaluator">+</button>
     </div>
+    <span class="hint" style="margin:0">each score 1–5</span>
   </div>
 
   <div class="panel">
@@ -372,7 +373,7 @@ function formHTML(){
     <div class="guide">
       <p><b>Scoring Guide:</b></p>
       <ul class="guide-list">
-        <li><b>Total Score: ${data.totalScore||0} / 10</b></li>
+        <li><b>Total Score: ${data.totalScore||0}</b></li>
         <li><b>Average Score: ${data.avgScore||0}</b></li>
       </ul>
       <p style="margin-top:8px"><b>Performance Interpretation:</b></p>
@@ -510,7 +511,7 @@ function buildDocx(){
   body+=para([run("5 \u2013 Excellent | 4 \u2013 Very Good | 3 \u2013 Satisfactory | 2 \u2013 Needs Improvement | 1 \u2013 Poor",{bold:!f.senior})],{after:100});
   body+=tb;
   body+=para([run("Scoring Guide:",{bold:true})],{before:60,after:30});
-  body+=bullet([run("Total Score: ",{bold:true}),run((data.totalScore||0)+" / 10",{bold:true})],{after:30});
+  body+=bullet([run("Total Score: ",{bold:true}),run((data.totalScore||0)+"",{bold:true})],{after:30});
   body+=bullet([run("Average Score: ",{bold:true}),run(String(data.avgScore||0),{bold:true})],{after:100});
   body+=para([run("Performance Interpretation:",{bold:true})],{after:20});
   const cur=interpret(data.avgScore);
@@ -679,7 +680,7 @@ function buildPDF(){
   L(x0,ytop,x0+tableW,ytop); L(x0,ytop-hh,x0+tableW,ytop-hh);
   y-=16;
   T(M,y,"Scoring Guide:",10,true); y-=15;
-  BUL(M,y,"Total Score:",(data.totalScore||0)+" / 10"); y-=14;
+  BUL(M,y,"Total Score:",(data.totalScore||0)+""); y-=14;
   BUL(M,y,"Average Score:",String(data.avgScore||0)); y-=18;
   T(M,y,"Performance Interpretation:",10,true); y-=13;
   ["4.5 - 5.0 = Outstanding","3.5 - 4.4 = Very Good","2.5 - 3.4 = Satisfactory","1.5 - 2.4 = Needs Improvement","1.0 - 1.4 = Poor"].forEach(t=>{

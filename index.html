@@ -97,6 +97,7 @@
       <div class="val" id="evVal">6</div>
       <button id="evPlus" aria-label="Add evaluator">+</button>
     </div>
+    <span class="hint" style="margin:0">each score 1–5</span>
   </div>
 
   <div class="panel">
@@ -138,7 +139,7 @@ const FORMS = {
 let role="Probationary", evaluators=6;
 const MIN_EV=1,MAX_EV=10;
 let scores={};
-let managerSaved={normal:"Aiko Yasuda", senior:"Client Relation Department"};
+let managerSaved={normal:"Aiko Yasuda", senior:"CRO"};
 
 const round1=n=>Math.round(n*10)/10;
 function ensureStore(){ if(!scores[role])scores[role]={}; FORMS[role].rows.forEach((_,i)=>{ if(!scores[role][i])scores[role][i]={}; }); }
@@ -173,16 +174,47 @@ function buildBody(){
   tb.querySelectorAll('.score-in').forEach(inp=>{
     inp.addEventListener('input',onScoreInput);
     inp.addEventListener('keydown',onScoreKey);
+    inp.addEventListener('blur',onScoreBlur);
   });
+}
+function onScoreBlur(e){
+  const inp=e.target;
+  if(cellValid(inp)) return;          // valid or empty -> allow leaving
+  // allow leaving to buttons/other controls (don't trap the user out of the grid)
+  const to=e.relatedTarget;
+  if(to && !to.classList.contains('score-in')) return;
+  inp.classList.add('bad');
+  const st=document.getElementById('status');
+  st.textContent="Enter a number from 1 to 5 before moving on.";
+  setTimeout(()=>{ if(st.textContent.startsWith("Enter a number")) st.textContent=""; },2500);
+  // pull focus back to the invalid box
+  setTimeout(()=>{ inp.focus(); inp.select(); },0);
 }
 function focusCell(ci,ev){
   const el=document.querySelector(`.score-in[data-c="${ci}"][data-e="${ev}"]`);
   if(el){ el.focus(); el.select(); }
   return !!el;
 }
+function cellValid(inp){
+  const raw=inp.value.trim();
+  if(raw==="") return true; // empty is allowed (just skipped)
+  const num=Number(raw);
+  return !(isNaN(num)||num<1||num>SCALE_MAX||!Number.isInteger(num));
+}
 function onScoreKey(e){
   const inp=e.target, ci=+inp.dataset.c, ev=+inp.dataset.e;
   const lastRow=FORMS[role].rows.length-1, lastCol=evaluators-1;
+  const navKeys=["ArrowUp","ArrowDown","ArrowLeft","ArrowRight","Enter","Tab"];
+  // If trying to leave this box but the value is invalid, block it
+  if(navKeys.includes(e.key) && !cellValid(inp)){
+    e.preventDefault();
+    inp.classList.add('bad');
+    inp.focus(); inp.select();
+    const st=document.getElementById('status');
+    st.textContent="Enter a number from 1 to 5 before moving on.";
+    setTimeout(()=>{ if(st.textContent.startsWith("Enter a number")) st.textContent=""; },2500);
+    return;
+  }
   let handled=true;
   switch(e.key){
     case "ArrowUp":   focusCell(ci>0?ci-1:lastRow, ev); break;
@@ -300,11 +332,26 @@ function requireName(){
   inp.classList.remove('bad');
   return true;
 }
+function requireValidScores(){
+  const boxes=document.querySelectorAll('.score-in');
+  for(const inp of boxes){
+    if(!cellValid(inp)){
+      inp.classList.add('bad');
+      inp.focus(); inp.select();
+      const st=document.getElementById('status');
+      st.textContent="Fix the highlighted score (must be 1–5).";
+      setTimeout(()=>{ if(st.textContent.startsWith("Fix the highlighted")) st.textContent=""; },2500);
+      return false;
+    }
+  }
+  return true;
+}
+function canExport(){ return requireName() && requireValidScores(); }
 
-document.getElementById('printBtn').onclick=()=>{ if(!requireName()) return; openPrint(); };
+document.getElementById('printBtn').onclick=()=>{ if(!canExport()) return; openPrint(); };
 
 document.getElementById('pdfBtn').onclick=()=>{
-  if(!requireName()) return;
+  if(!canExport()) return;
   const btn=document.getElementById('pdfBtn'), st=document.getElementById('status');
   btn.disabled=true; st.textContent="Generating PDF…";
   try{ buildPDF(); st.textContent="PDF downloaded."; }
@@ -313,7 +360,7 @@ document.getElementById('pdfBtn').onclick=()=>{
 };
 
 document.getElementById('exportBtn').onclick=async()=>{
-  if(!requireName()) return;
+  if(!canExport()) return;
   const btn=document.getElementById('exportBtn'), st=document.getElementById('status');
   btn.disabled=true; st.textContent="Generating…";
   try{ buildDocx(); st.textContent="Word downloaded."; }
